@@ -168,10 +168,12 @@ import com.uniguard.ble_scanner.core.domain.usecases.ble.UploadsUseCase
 import com.uniguard.ble_scanner.core.services.BLEScannerService
 import com.uniguard.ble_scanner.core.services.ScanResultReceiver
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 @HiltViewModel
 class BLEScannerViewModel @Inject constructor(
@@ -183,12 +185,15 @@ class BLEScannerViewModel @Inject constructor(
     private val _scannedDevices = MutableStateFlow<List<DeviceInfo>>(emptyList())
     val scannedDevices: StateFlow<List<DeviceInfo>> get() = _scannedDevices
 
+    private val _uploadMessage = MutableStateFlow<String>("PROCESS")
+    val uploadMessage: StateFlow<String> get() = _uploadMessage
+
     private val _intervalScan = MutableStateFlow(5)
-    val intervalScan: StateFlow<Int> get() = _intervalScan
 
     private val idDevice = settingsDataStore.idDevice
 
     private var scanResultReceiver: BroadcastReceiver? = null
+    private var periodicUploadJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -206,10 +211,18 @@ class BLEScannerViewModel @Inject constructor(
                 }
             }
         }
+        viewModelScope.launch {
+            settingsDataStore.isHitInBackground.collect { isHitInBackground ->
+                if (!isHitInBackground) {
+                    startPeriodicUpload()  // Start periodic upload if not in background
+                } else {
+                    stopPeriodicUpload()  // Stop periodic upload if in background
+                }
+            }
+        }
 
         registerScanResultReceiver()
     }
-
 
     private fun registerScanResultReceiver() {
         val filter = IntentFilter("com.uniguard.ble_scanner.SCAN_RESULT")
@@ -233,25 +246,38 @@ class BLEScannerViewModel @Inject constructor(
     }
 
     private fun startPeriodicUpload() {
-        viewModelScope.launch {
+        periodicUploadJob = viewModelScope.launch {
             while (true) {
-                delay(_intervalScan.value * 1000L)
+                delay((_intervalScan.value * 1000).toLong())
                 uploadBleApiCall()
             }
         }
     }
 
+    private fun stopPeriodicUpload() {
+        periodicUploadJob?.cancel()
+        periodicUploadJob = null
+    }
+
     private suspend fun uploadBleApiCall() {
+        Log.d("BLEScannerViewModel", "API CALLED")
         val deviceId = idDevice.firstOrNull() ?: return
         val bleList = _scannedDevices.value.map { it.address }
         val requestData = BLERequest(deviceId, bleList)
 
         try {
             uploadsUseCase.execute(requestData)
-                .catch { Log.e("ERROR", "uploadBleApiCall: ${it.message}") }
-                .collect { Log.d("SUCCESS", "uploadBleApiCall: $it") }
+                .catch {
+                    Log.e("ERROR", "uploadBleApiCall: ${it.message}")
+                    _uploadMessage.value = "SUCCESS"
+                }
+                .collect {
+                    Log.d("SUCCESS", "uploadBleApiCall: $it")
+                    _uploadMessage.value = "ERROR"
+                }
         } catch (e: Exception) {
             Log.e("API EXCEPTION", "uploadBleApiCall: ${e.message}")
+            _uploadMessage.value = "ERROR"
         }
     }
 
@@ -262,13 +288,11 @@ class BLEScannerViewModel @Inject constructor(
         } else {
             application.startService(intent)
         }
-
-        startPeriodicUpload()
     }
 
     private fun stopScanning(context: Context) {
         val intent = Intent(context, BLEScannerService::class.java)
-        context.stopService(intent)
+        application.stopService(intent)
     }
 
     private fun updateDeviceList(deviceInfo: DeviceInfo) {

@@ -17,6 +17,7 @@ class PreferenceViewModel @Inject constructor(
     val url = settingsDataStore.url
     val intervalScan = settingsDataStore.intervalScan
     val idDevice = settingsDataStore.idDevice
+    val isHitInBackground = settingsDataStore.isHitInBackground
 
     fun updateUrl(newUrl: String) {
         viewModelScope.launch {
@@ -33,6 +34,12 @@ class PreferenceViewModel @Inject constructor(
     fun updateIdDevice(newIdDevice: String) {
         viewModelScope.launch {
             settingsDataStore.updateIdDevice(newIdDevice)
+        }
+    }
+
+    fun updateIsHitInBackground(newIsHitInBackground: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateIsHitInBackground(newIsHitInBackground)
         }
     }
 }

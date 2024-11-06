@@ -13,7 +13,6 @@ class ScanResultReceiver(private val onScanResult: (String?, Int, String, Long) 
             val name = it.getStringExtra("device_name") ?: "Unknown"
             val lastSeen = System.currentTimeMillis()
 
-            Log.d("ScanResultReceiver", "Received scan result: $deviceAddress, RSSI: $rssi, Name: $name")
             onScanResult(deviceAddress, rssi, name, lastSeen)
         }
     }

@@ -1,24 +1,26 @@
 package com.uniguard.ble_scanner.ui.screens
 
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothDevice
-import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.uniguard.ble_scanner.ui.composable.BLEPermissionCheck
 import com.uniguard.ble_scanner.ui.viewmodels.BLEScannerViewModel
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,11 +28,11 @@ fun BLEScannerScreen(
     viewModel: BLEScannerViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val context = LocalContext.current
-
-    val intervalScan by viewModel.intervalScan.collectAsState()
 
     BLEPermissionCheck {
+
+        val uploadMessage by viewModel.uploadMessage.collectAsState()
+
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -38,10 +40,30 @@ fun BLEScannerScreen(
                         containerColor = MaterialTheme.colorScheme.secondary
                     ),
                     title = {
-                        Text(
-                            text = "BLE Scanner",
-                            color = MaterialTheme.colorScheme.onSecondary
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(end = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "BLE Scanner",
+                                color = MaterialTheme.colorScheme.onSecondary
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .padding(4.dp)
+                            ) {
+                                Text(
+                                    text = uploadMessage,
+                                    style = TextStyle(
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                            }
+                        }
                     },
                     actions = {
                         IconButton(onClick = {
@@ -58,7 +80,7 @@ fun BLEScannerScreen(
             }
         ) { paddingValues ->
 
-            LaunchedEffect(intervalScan) {
+            LaunchedEffect(Unit) {
                 viewModel.startScanning()
             }
 
