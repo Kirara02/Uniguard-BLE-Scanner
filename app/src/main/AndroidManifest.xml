@@ -48,7 +48,7 @@
 
         <receiver
                 android:name=".core.services.ScanResultReceiver"
-                android:exported="true" />
+                android:exported="true"/>
     </application>
 
 </manifest>

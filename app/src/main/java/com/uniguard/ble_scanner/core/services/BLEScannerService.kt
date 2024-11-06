@@ -1,6 +1,7 @@
 package com.uniguard.ble_scanner.core.services
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -137,6 +138,7 @@ class BLEScannerService : Service() {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun sendScanResultToUI(scanResult: ScanResult) {
         val intent = Intent("com.uniguard.ble_scanner.SCAN_RESULT")
         intent.putExtra("device_address", scanResult.device.address)
@@ -147,11 +149,14 @@ class BLEScannerService : Service() {
 
     private fun registerScanResultReceiver() {
         val filter = IntentFilter("com.uniguard.ble_scanner.SCAN_RESULT")
-        scanResultReceiver = ScanResultReceiver { deviceAddress, rssi, name, lastSeen ->
-            deviceAddress?.let { address ->
-                updateDeviceList(DeviceInfo(address, rssi, name, lastSeen))
+        scanResultReceiver = ScanResultReceiver().apply {
+            onScanResult = { deviceAddress, rssi, name, lastSeen ->
+                deviceAddress?.let { address ->
+                    updateDeviceList(DeviceInfo(address, rssi, name, lastSeen))
+                }
             }
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             application.registerReceiver(scanResultReceiver, filter, Context.RECEIVER_EXPORTED)
         } else {

@@ -5,7 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 
-class ScanResultReceiver(private val onScanResult: (String?, Int, String, Long) -> Unit) : BroadcastReceiver() {
+class ScanResultReceiver : BroadcastReceiver() {
+
+    // Temporary callback holder
+    var onScanResult: ((String?, Int, String, Long) -> Unit)? = null
+
     override fun onReceive(context: Context?, intent: Intent?) {
         intent?.let {
             val deviceAddress = it.getStringExtra("device_address")
@@ -13,7 +17,8 @@ class ScanResultReceiver(private val onScanResult: (String?, Int, String, Long) 
             val name = it.getStringExtra("device_name") ?: "Unknown"
             val lastSeen = System.currentTimeMillis()
 
-            onScanResult(deviceAddress, rssi, name, lastSeen)
+            // Call the callback if it's set
+            onScanResult?.invoke(deviceAddress, rssi, name, lastSeen)
         }
     }
 }

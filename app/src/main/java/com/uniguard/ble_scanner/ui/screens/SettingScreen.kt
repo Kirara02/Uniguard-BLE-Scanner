@@ -27,7 +27,6 @@ import kotlin.system.exitProcess
 @Composable
 fun SettingScreen(
     viewModel: PreferenceViewModel = hiltViewModel(),
-    bleScannerViewModel: BLEScannerViewModel = hiltViewModel(),
     navController: NavController
 ) {
     val context = LocalContext.current

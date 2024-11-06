@@ -185,7 +185,7 @@ class BLEScannerViewModel @Inject constructor(
     private val _scannedDevices = MutableStateFlow<List<DeviceInfo>>(emptyList())
     val scannedDevices: StateFlow<List<DeviceInfo>> get() = _scannedDevices
 
-    private val _uploadMessage = MutableStateFlow<String>("PROCESS")
+    private val _uploadMessage = MutableStateFlow("PROCESS")
     val uploadMessage: StateFlow<String> get() = _uploadMessage
 
     private val _intervalScan = MutableStateFlow(5)
@@ -226,9 +226,11 @@ class BLEScannerViewModel @Inject constructor(
 
     private fun registerScanResultReceiver() {
         val filter = IntentFilter("com.uniguard.ble_scanner.SCAN_RESULT")
-        scanResultReceiver = ScanResultReceiver { deviceAddress, rssi, name, lastSeen ->
-            deviceAddress?.let { address ->
-                updateDeviceList(DeviceInfo(address, rssi, name, lastSeen))
+        scanResultReceiver = ScanResultReceiver().apply {
+            onScanResult = { deviceAddress, rssi, name, lastSeen ->
+                deviceAddress?.let { address ->
+                    updateDeviceList(DeviceInfo(address, rssi, name, lastSeen))
+                }
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
