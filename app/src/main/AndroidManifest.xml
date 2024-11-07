@@ -45,10 +45,6 @@
                 android:exported="false"
                 android:foregroundServiceType="location"
                 android:permission="android.permission.FOREGROUND_SERVICE_LOCATION"/>
-
-        <receiver
-                android:name=".core.services.ScanResultReceiver"
-                android:exported="true"/>
     </application>
 
 </manifest>
