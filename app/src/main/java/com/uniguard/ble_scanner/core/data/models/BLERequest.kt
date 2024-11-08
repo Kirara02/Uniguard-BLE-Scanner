@@ -5,5 +5,6 @@ import com.google.gson.annotations.SerializedName
 data class BLERequest(
     @SerializedName("id_device")
     val deviceId: String,
-    val rfid : List<String>
+    val rfid : List<String>,
+    val rssi : List<String>
 )

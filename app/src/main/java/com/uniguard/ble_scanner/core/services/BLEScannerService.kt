@@ -124,12 +124,20 @@ class BLEScannerService : Service() {
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
-            sendScanResultToUI(result)
+            val minRssi = -70
+            if (result.rssi >= minRssi) {
+                sendScanResultToUI(result)
+            }
         }
 
         override fun onBatchScanResults(results: List<ScanResult>) {
             super.onBatchScanResults(results)
-            results.forEach { result -> sendScanResultToUI(result) }
+            val minRssi = -70
+            results
+                .filter { it.rssi >= minRssi }
+                .forEach { result ->
+                    sendScanResultToUI(result)
+                }
         }
 
         override fun onScanFailed(errorCode: Int) {
@@ -214,7 +222,8 @@ class BLEScannerService : Service() {
         Log.d("BLEScannerService", "API CALLED")
         val deviceId = settingsDataStore.idDevice.firstOrNull() ?: return
         val bleList = _scannedDevices.map { it.address }
-        val requestData = BLERequest(deviceId, bleList)
+        val rssiList = _scannedDevices.map { it.rssi.toString() }
+        val requestData = BLERequest(deviceId, bleList, rssiList)
 
         try {
             uploadsUseCase.execute(requestData)

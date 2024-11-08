@@ -216,6 +216,7 @@ class BLEScannerViewModel @Inject constructor(
                 if (!isHitInBackground) {
                     startPeriodicUpload()  // Start periodic upload if not in background
                 } else {
+                    _uploadMessage.value = "UPLOAD IN BACKGROUND"
                     stopPeriodicUpload()  // Stop periodic upload if in background
                 }
             }
@@ -265,17 +266,18 @@ class BLEScannerViewModel @Inject constructor(
         Log.d("BLEScannerViewModel", "API CALLED")
         val deviceId = idDevice.firstOrNull() ?: return
         val bleList = _scannedDevices.value.map { it.address }
-        val requestData = BLERequest(deviceId, bleList)
+        val rssiList = _scannedDevices.value.map { it.rssi.toString() }
+        val requestData = BLERequest(deviceId, bleList, rssiList)
 
         try {
             uploadsUseCase.execute(requestData)
                 .catch {
                     Log.e("ERROR", "uploadBleApiCall: ${it.message}")
-                    _uploadMessage.value = "SUCCESS"
+                    _uploadMessage.value = "ERROR"
                 }
                 .collect {
                     Log.d("SUCCESS", "uploadBleApiCall: $it")
-                    _uploadMessage.value = "ERROR"
+                    _uploadMessage.value = "SUCCESS"
                 }
         } catch (e: Exception) {
             Log.e("API EXCEPTION", "uploadBleApiCall: ${e.message}")

@@ -120,7 +120,7 @@ fun SettingScreen(
                 value = tempUrl,
                 onValueChange = { tempUrl = it },
                 label = "URL",
-                hint = "Input your URL here"
+                hint = "Input your URL here (domain.com)"
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -164,15 +164,16 @@ fun SettingScreen(
                             // Show a message or a toast indicating the URL cannot be empty
                             Log.e("SettingScreen", "SettingScreen: url empty", )
                         }
-                        !(tempUrl.startsWith("http://") || tempUrl.startsWith("https://")) -> {
-                            // Show a message or a toast indicating the URL must start with http/https
-                            Toast.makeText(context, "URL must start with http:// or https://", Toast.LENGTH_SHORT).show()
-                        }
+//                        !(tempUrl.startsWith("http://") || tempUrl.startsWith("https://")) -> {
+//                            // Show a message or a toast indicating the URL must start with http/https
+//                            Toast.makeText(context, "URL must start with http:// or https://", Toast.LENGTH_SHORT).show()
+//                        }
                         else -> {
                             // Update the URL since it is valid
                             viewModel.updateUrl(tempUrl)
                         }
                     }
+
 
                     if(tempIntervalScan.isNotBlank()){
                         viewModel.updateIntervalScan(tempIntervalScan.toIntOrNull() ?: 5)
@@ -182,7 +183,7 @@ fun SettingScreen(
                     }
                     viewModel.updateIsHitInBackground(tempIsHitInBackground)
                     // Check if 'Run in Background' or 'Interval' changed
-                    if (tempIsHitInBackground != isHitInBackground || tempIntervalScan != intervalScan.toString()) {
+                    if (tempIsHitInBackground != isHitInBackground || tempIntervalScan != intervalScan.toString() || tempUrl != url) {
                         showDialog = true
                     } else {
                         navController.navigate("/main")

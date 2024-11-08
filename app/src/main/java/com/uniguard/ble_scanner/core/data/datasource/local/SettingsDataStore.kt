@@ -67,21 +67,6 @@ class SettingsDataStore(
         dataStore.edit { preferences ->
             preferences[IS_HIT_IN_BACKGROUND] = newIsHitInBackground
         }
-        stopScanning(application)
-        startScanning()
     }
 
-    private fun startScanning() {
-        val intent = Intent(application, BLEScannerService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            application.startForegroundService(intent)
-        } else {
-            application.startService(intent)
-        }
-    }
-
-    private fun stopScanning(context: Context) {
-        val intent = Intent(context, BLEScannerService::class.java)
-        application.stopService(intent)
-    }
 }

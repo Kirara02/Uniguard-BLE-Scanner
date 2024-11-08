@@ -1,5 +1,6 @@
 package com.uniguard.ble_scanner.core.di
 
+import android.util.Log
 import com.google.gson.GsonBuilder
 import com.uniguard.ble_scanner.BuildConfig
 import com.uniguard.ble_scanner.core.data.datasource.local.SettingsDataStore
@@ -30,10 +31,10 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(logging: HttpLoggingInterceptor): OkHttpClient {
+    fun provideOkHttpClient(logging: HttpLoggingInterceptor, settingsDataStore: SettingsDataStore): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(logging)
-            .addInterceptor(HttpRequestInterceptor())
+            .addInterceptor(HttpRequestInterceptor(settingsDataStore))
             .build()
     }
 
@@ -48,11 +49,8 @@ object NetworkModule {
     fun provideRetrofit(
         converterFactory: GsonConverterFactory,
         okHttpClient: OkHttpClient,
-        settingsDataStore: SettingsDataStore
     ) : Retrofit {
-        val baseUrl = runBlocking {
-            settingsDataStore.url.first() ?: "https://example.app"
-        }
+        val baseUrl = "https://rfidtrack.uniguard.co.id"
 
         return Retrofit.Builder()
             .baseUrl(baseUrl)
