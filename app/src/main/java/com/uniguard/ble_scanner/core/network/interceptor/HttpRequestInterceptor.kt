@@ -18,29 +18,44 @@ internal class HttpRequestInterceptor(
             settingsDataStore.url.first()
         }
 
-        val domain = storedUrl?.replace(Regex("^https?://"), "") ?: originalRequest.url.host
+        val cleanedUrl = storedUrl?.replace(Regex("^https?://"), "") ?: originalRequest.url.host
 
-        Log.d("REQUEST", "Cleaned URL: $domain")
+        val scheme = if (Regex("^(\\d{1,3}\\.){3}\\d{1,3}(:\\d+)?$").matches(cleanedUrl)) {
+            "http"
+        } else {
+            "https"
+        }
 
-        val endpointPath = originalRequest.url.encodedPath
+        val (host, port) = if (cleanedUrl.contains(":")) {
+            val splitUrl = cleanedUrl.split(":")
+            splitUrl[0] to splitUrl[1].toInt()
+        } else {
+            cleanedUrl to -1
+        }
+
+        val newUrlBuilder = originalRequest.url.newBuilder()
+            .scheme(scheme)
+            .host(host)
+            .encodedPath(originalRequest.url.encodedPath)
+
+        if (port != -1) {
+            newUrlBuilder.port(port)
+        }
+
+        val newUrl = newUrlBuilder.build()
 
         val username = "Gate"
         val password = "rYn5gqJ4X0ZDdvyPEut2Uhs1FBwVxbGI"
         val basicAuth = Credentials.basic(username, password)
 
-        val newUrl = originalRequest.url.newBuilder()
-            .scheme("https")
-            .host(domain)
-            .encodedPath(endpointPath)
-            .build()
-
+        // Buat request baru dengan URL baru dan header tambahan
         val request = originalRequest.newBuilder()
             .addHeader("Accept", "application/json")
             .addHeader("Authorization", basicAuth)
-//            .url(originalRequest.url)
             .url(newUrl)
             .build()
 
         return chain.proceed(request)
     }
 }
+
