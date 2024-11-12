@@ -124,17 +124,17 @@ class BLEScannerService : Service() {
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
-            val minRssi = -70
-            if (result.rssi >= minRssi) {
+//            val minRssi = -70
+//            if (result.rssi >= minRssi) {
                 sendScanResultToUI(result)
-            }
+//            }
         }
 
         override fun onBatchScanResults(results: List<ScanResult>) {
             super.onBatchScanResults(results)
-            val minRssi = -70
+//            val minRssi = -70
             results
-                .filter { it.rssi >= minRssi }
+//                .filter { it.rssi >= minRssi }
                 .forEach { result ->
                     sendScanResultToUI(result)
                 }

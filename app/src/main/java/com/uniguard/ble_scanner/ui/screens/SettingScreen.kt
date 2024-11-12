@@ -1,5 +1,6 @@
 package com.uniguard.ble_scanner.ui.screens
 
+import android.app.ActivityManager
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.uniguard.ble_scanner.core.services.BLEScannerService
 import com.uniguard.ble_scanner.ui.composable.UTextField
 import com.uniguard.ble_scanner.ui.viewmodels.BLEScannerViewModel
 import com.uniguard.ble_scanner.ui.viewmodels.PreferenceViewModel
@@ -197,11 +199,31 @@ fun SettingScreen(
     }
 }
 
+private fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
+    val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+        if (serviceClass.name == service.service.className) {
+            return true
+        }
+    }
+    return false
+}
+
+private fun stopScanning(context: Context) {
+    val intent = Intent(context, BLEScannerService::class.java)
+    context.stopService(intent)
+}
+
 // Function to restart the application
 private fun restartApp(context: Context) {
+
+    if(isServiceRunning(context, BLEScannerService::class.java)) {
+        stopScanning(context)
+    }
+
     val packageManager = context.packageManager
     val intent = packageManager.getLaunchIntentForPackage(context.packageName)
-    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP  or Intent.FLAG_ACTIVITY_NEW_TASK)
+    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
     val pendingIntent = PendingIntent.getActivity(
         context,
         0,

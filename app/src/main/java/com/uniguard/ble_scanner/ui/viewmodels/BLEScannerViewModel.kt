@@ -152,6 +152,7 @@
 
 package com.uniguard.ble_scanner.ui.viewmodels
 
+import android.app.ActivityManager
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -285,12 +286,29 @@ class BLEScannerViewModel @Inject constructor(
         }
     }
 
+    private fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
+    // Cara menggunakan di fungsi startScanning
     fun startScanning() {
         val intent = Intent(application, BLEScannerService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            application.startForegroundService(intent)
+
+        if (!isServiceRunning(application, BLEScannerService::class.java)) {
+            // Mulai service hanya jika belum berjalan
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                application.startForegroundService(intent)
+            } else {
+                application.startService(intent)
+            }
         } else {
-            application.startService(intent)
+            Log.d("ServiceStatus", "BLEScannerService sudah berjalan.")
         }
     }
 
